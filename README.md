@@ -73,10 +73,3 @@
     "username": "user1"
   }
 
-
-## License
-This system is licensed under the **MIT License**.
-
-## Author
-Your Name - [GitHub](https://github.com/your-username)
-
