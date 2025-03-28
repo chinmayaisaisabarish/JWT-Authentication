@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/axios.min.js"></script>
+    <script>
+        const API_BASE_URL = "http://localhost:3001";
+
+        async function signup() {
+            const signupBtn = document.querySelector("#signup-btn");
+            const username = document.getElementById("signup-username").value.trim();
+            const password = document.getElementById("signup-password").value.trim();
+
+            if (!username || !password) {
+                alert("Please enter both username and password");
+                return;
+            }
+
+            signupBtn.disabled = true;
+            try {
+                const response = await axios.post(`${API_BASE_URL}/signup`, {
+                    username: username,
+                    password: password
+                });
+                localStorage.setItem("token", response.data.token);
+                alert("Signed up successfully");
+                document.getElementById("signup-username").value = "";
+                document.getElementById("signup-password").value = "";
+            } catch (error) {
+                alert("Signup failed: " + (error.response?.data?.message || error.message));
+            } finally {
+                signupBtn.disabled = false;
+            }
+        }
+
+        async function signin() {
+            const signinBtn = document.querySelector("#signin-btn");
+            const username = document.getElementById("signin-username").value.trim();
+            const password = document.getElementById("signin-password").value.trim();
+
+            if (!username || !password) {
+                alert("Please enter both username and password");
+                return;
+            }
+
+            signinBtn.disabled = true;
+            try {
+                const response = await axios.post(`${API_BASE_URL}/signin`, {
+                    username: username,
+                    password: password
+                });
+                localStorage.setItem("token", response.data.token);
+                alert("Signed in successfully");
+                document.getElementById("signin-username").value = "";
+                document.getElementById("signin-password").value = "";
+            } catch (error) {
+                alert("Signin failed: " + (error.response?.data?.message || error.message));
+            } finally {
+                signinBtn.disabled = false;
+            }
+        }
+
+        async function getUserInfo() {
+            const infoBtn = document.querySelector("#info-btn");
+            infoBtn.disabled = true;
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    throw new Error("No token found. Please sign in first.");
+                }
+
+                const response = await axios.get(`${API_BASE_URL}/me`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                document.getElementById("information").innerText = 
+                    `Username: ${response.data.username}`;
+            } catch (error) {
+                document.getElementById("information").innerText = 
+                    "Error: " + (error.response?.data?.message || error.message);
+            } finally {
+                infoBtn.disabled = false;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("token");
+            document.getElementById("information").innerText = "";
+            alert("Logged out successfully");
+            updateInfoButtonState();
+        }
+
+        function updateInfoButtonState() {
+            const infoBtn = document.querySelector("#info-btn");
+            infoBtn.disabled = !localStorage.getItem("token");
+        }
+
+        window.onload = function() {
+            updateInfoButtonState();
+            if (localStorage.getItem("token")) {
+                getUserInfo();
+            }
+        };
+    </script>
+</head>
+<body>
+    <div>
+        Signup
+        <input id="signup-username" type="text" name="username" placeholder="Username">
+        <input id="signup-password" type="password" name="password" placeholder="Password">
+        <button id="signup-btn" onclick="signup()">Submit</button>
+    </div>
+    <div>
+        Signin
+        <input id="signin-username" type="text" name="username" placeholder="Username">
+        <input id="signin-password" type="password" name="password" placeholder="Password">
+        <button id="signin-btn" onclick="signin()">Submit</button>
+    </div>
+    <div>
+        User information: 
+        <div id="information"></div>
+    </div>
+    <div>
+        <button id="info-btn" onclick="getUserInfo()">Get User Info</button>
+        <button onclick="logout()">Logout</button>
+    </div>
+</body>
+</html>
